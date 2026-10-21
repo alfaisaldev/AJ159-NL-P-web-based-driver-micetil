@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mouse>
+	<image_file cap_img="" home_img="mouse.png" mouse_img="mouse.png"/>
+	<menu light="0" />
+	<firmware url="" />
+	<mouse_key>
+		<key name="201" key_value="0" direction="0" rect="70#170#30" func_type="1" func_value="1" func_desc="106"/>
+		<key name="202" key_value="1" direction="1" rect="280#390#30" func_type="1" func_value="3" func_desc="107"/>
+		<key name="203" key_value="2" direction="1" rect="230#390#80" func_type="1" func_value="2" func_desc="108"/>
+		<key name="204" key_value="3" direction="0" rect="70#100#170" func_type="1" func_value="5" func_desc="109"/>
+		<key name="205" key_value="4" direction="0" rect="70#100#251" func_type="1" func_value="6" func_desc="110"/>
+	</mouse_key>
+</mouse>

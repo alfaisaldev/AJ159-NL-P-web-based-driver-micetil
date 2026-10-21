@@ -1,0 +1,13 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# local noise
+*.log
+*.swp
+.DS_Store
+
+# usb captures (kept local, not published)
+*.pcapng

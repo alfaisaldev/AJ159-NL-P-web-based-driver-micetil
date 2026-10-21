@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<device>
+		<mouse name="AJ159 NL P" device_type="101" device_attr="mouse" image="mouse.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d25" hid_interface="VID_7768&PID_6D25&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="6425" hid_interface="VID_7768&PID_6425&MI_01"/>
+		</mouse>
+		<mouse name="AJ159 NL" device_type="102" device_attr="mouse" image="mouse.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d26" hid_interface="VID_7768&PID_6D26&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="6426" hid_interface="VID_7768&PID_6426&MI_01"/>
+		</mouse>
+		<mouse name="AJ179 NL P" device_type="103" device_attr="aj179" image="aj179.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d2E" hid_interface="VID_7768&PID_6D2E&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="642E" hid_interface="VID_7768&PID_642E&MI_01"/>
+		</mouse>
+		<mouse name="AJ179 NL" device_type="104" device_attr="aj179" image="aj179.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d2D" hid_interface="VID_7768&PID_6D2D&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="642D" hid_interface="VID_7768&PID_642D&MI_01"/>
+		</mouse>
+		<mouse name="AJ179 V2 NL P" device_type="105" device_attr="aj179v2" image="aj179v2.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d32" hid_interface="VID_7768&PID_6D32&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="6432" hid_interface="VID_7768&PID_6432&MI_01"/>
+		</mouse>
+		<mouse name="AJ179 V2 NL" device_type="106" device_attr="aj179v2" image="aj179v2.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d31" hid_interface="VID_7768&PID_6D31&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="6431" hid_interface="VID_7768&PID_6431&MI_01"/>
+		</mouse>
+		<mouse name="AJ139 V2 NL P" device_type="107" device_attr="aj139" image="aj139.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d30" hid_interface="VID_7768&PID_6D30&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="6430" hid_interface="VID_7768&PID_6430&MI_01"/>
+		</mouse>
+		<mouse name="AJ139 V2 NL" device_type="108" device_attr="aj139" image="aj139.png">
+			<mode value="0" desc="USB" vid="7768" pid="6d2F" hid_interface="VID_7768&PID_6D2F&MI_01"/>
+			<mode value="1" desc="2.4G" vid="7768" pid="642F" hid_interface="VID_7768&PID_642F&MI_01"/>
+		</mouse>
+	</device>
+	<software caption="AJAZZ Driver（W1）" version="1.0.7.6">
+		<website url=""/>
+		<store url=""/>
+		<upgrade url=""/>
+		<copyright info="Copyright ©2025 AJAZZ"/>
+	</software>
+</config>
