@@ -16,6 +16,7 @@ import mimetypes
 import os
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
 
 from battery import AjazzBattery
 
@@ -25,6 +26,12 @@ ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 STARTED = time.time()
 RATE_FILE = os.path.join(os.path.expanduser("~/.cache"), "ajazz-panel", "rate.json")
 RATE_OPTIONS = [125, 250, 500, 1000]   # measured in ajaaz.pcapng, see ajazz_protocol
+MAX_BODY = 4096                        # the API only ever needs a few bytes
+
+# The panel is a desktop tool: it listens on the loopback and it is not
+# authenticated.  These two checks keep it that way, so a page in a browser
+# (or a rebound DNS name) cannot drive it from outside.
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -34,7 +41,30 @@ class Handler(BaseHTTPRequestHandler):
     def _serve_static(self, rel: str) -> None:
         self._serve_file(STATIC_DIR, rel)
 
+    def _host_allowed(self) -> bool:
+        """Only answer requests addressed to the loopback.
+
+        A browser sends `Host: 127.0.0.1:8778`; a DNS-rebinding attack
+        sends the attacker's own name, and that is refused.
+        """
+        host = (self.headers.get("Host") or "").strip()
+        if not host:
+            return True   # HTTP/1.0 without a Host header
+        name = urlsplit("//" + host).hostname
+        return (name or "").lower() in LOOPBACK_HOSTS
+
+    def _origin_allowed(self) -> bool:
+        """Refuse a write that another site initiated."""
+        origin = (self.headers.get("Origin") or "").strip()
+        if not origin:
+            return True   # not a browser request (curl, the panel itself)
+        name = urlsplit(origin).hostname
+        return (name or "").lower() in LOOPBACK_HOSTS
+
     def do_GET(self) -> None:  # noqa: N802
+        if not self._host_allowed():
+            self.send_error(403, "forbidden: this panel only answers on the loopback")
+            return
         path = self.path.split("?", 1)[0]
         if path in ("/", "/index.html"):
             self._serve_static("index.html")
@@ -54,6 +84,19 @@ class Handler(BaseHTTPRequestHandler):
             self._serve_static(path.lstrip("/"))
 
     def do_POST(self) -> None:  # noqa: N802
+        if not self._host_allowed():
+            self.send_error(403, "forbidden: this panel only answers on the loopback")
+            return
+        if not self._origin_allowed():
+            self.send_error(403, "forbidden: cross-origin write")
+            return
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if ctype != "application/json":
+            # a browser can only send a "simple" cross-origin POST without a
+            # preflight when the type is form-encoded; requiring JSON means a
+            # page on the internet cannot drive the mouse through this panel
+            self.send_error(415, "unsupported media type: use application/json")
+            return
         path = self.path.split("?", 1)[0]
         if path == "/api/dpi":
             self._handle_dpi()
@@ -87,6 +130,9 @@ class Handler(BaseHTTPRequestHandler):
         import ajazz_protocol as proto
 
         length = int(self.headers.get("Content-Length") or 0)
+        if length > MAX_BODY:
+            self.send_error(413, "request body too large")
+            return
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
             hz = int(body["hz"])
@@ -139,6 +185,9 @@ class Handler(BaseHTTPRequestHandler):
         import ajazz_protocol as proto
 
         length = int(self.headers.get("Content-Length") or 0)
+        if length > MAX_BODY:
+            self.send_error(413, "request body too large")
+            return
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
             stage = int(body["stage"])
@@ -166,6 +215,9 @@ class Handler(BaseHTTPRequestHandler):
         import ajazz_protocol as proto
 
         length = int(self.headers.get("Content-Length") or 0)
+        if length > MAX_BODY:
+            self.send_error(413, "request body too large")
+            return
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
             stage = int(body["stage"])
@@ -213,9 +265,21 @@ class Handler(BaseHTTPRequestHandler):
 
     # -- helpers -------------------------------------------------------------
     def _serve_file(self, root: str, rel: str) -> None:
-        safe = os.path.normpath(rel).lstrip("/")
-        full = os.path.join(root, safe)
-        if not full.startswith(root) or not os.path.isfile(full):
+        """Serve one file from `root`, and nothing outside it.
+
+        The path is resolved *before* the check: a plain prefix test on the
+        unresolved path lets `../` walk out of the directory, because the
+        string still starts with the root.
+        """
+        if "\x00" in rel:
+            self.send_error(404, "not found")
+            return
+        root_real = os.path.realpath(root)
+        full = os.path.realpath(os.path.join(root_real, rel))
+        if full != root_real and not full.startswith(root_real + os.sep):
+            self.send_error(404, "not found")
+            return
+        if not os.path.isfile(full):
             self.send_error(404, "not found")
             return
         ctype, _ = mimetypes.guess_type(full)

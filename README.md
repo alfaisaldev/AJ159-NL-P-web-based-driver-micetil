@@ -381,6 +381,17 @@ CI runs the self-test on Python 3.9, 3.11 and 3.12.
 
 ---
 
+## Security
+
+The panel binds the loopback only, refuses requests that are not addressed
+to it (DNS rebinding), refuses writes that come from another site (CSRF),
+and serves files only from `static/` and `assets/` after resolving the path.
+It runs as your user, never as root, and its state directory is private.
+The full list is in [SECURITY.md](SECURITY.md), and every one of those
+rules is covered by `tools/selftest.py`.
+
+---
+
 ## Notes and limits
 
 * The older AJ-series mice (`0x3151:…`) use a different, 64-byte

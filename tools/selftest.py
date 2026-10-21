@@ -12,10 +12,12 @@ Exit code 0 means everything passed.
 
 from __future__ import annotations
 
+import http.client
 import os
 import pathlib
 import re
 import sys
+import threading
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -142,8 +144,74 @@ def test_ui():
               (ROOT / asset.lstrip("/")).is_file(), True)
 
 
+# -- the running panel --------------------------------------------------------
+def _probe(port, method, path, headers=None, body=None):
+    """One HTTP request against the test server, without touching the mouse."""
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+    try:
+        conn.request(method, path, body=body, headers=headers or {})
+        resp = conn.getresponse()
+        data = resp.read()
+        return resp.status, data
+    finally:
+        conn.close()
+
+
+def test_server_guards():
+    """The panel must serve its own files and nothing else.
+
+    A path traversal here would let any local process (or a page in a
+    browser) read files the user can read, so the checks are explicit.
+    """
+    from http.server import ThreadingHTTPServer
+
+    import server as panel
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), panel.Handler)
+    port = httpd.server_address[1]
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        # the panel serves its own files
+        status, body = _probe(port, "GET", "/index.html")
+        check("server: the panel serves its own index.html", status, 200)
+        check("server: the index.html is the real one",
+              b"id=\"stageSeg\"" in body, True)
+
+        # and nothing outside its directories
+        for path in ("/../server.py", "/assets/../server.py",
+                     "/../../../../../etc/passwd",
+                     "/../../../../../home/%s/.bashrc" % os.environ.get("USER", "x")):
+            status, body = _probe(port, "GET", path)
+            check(f"server: {path} is refused", status, 404)
+            check(f"server: {path} leaks nothing",
+                  b"import" not in body[:2000] and b"root:" not in body, True)
+
+        # only the loopback is answered (DNS rebinding)
+        status, _ = _probe(port, "GET", "/api/health", {"Host": "evil.example"})
+        check("server: a foreign Host is refused", status, 403)
+        status, _ = _probe(port, "GET", "/api/health", {"Host": f"127.0.0.1:{port}"})
+        check("server: the loopback Host is answered", status, 200)
+
+        # a write from another site is refused
+        status, _ = _probe(port, "POST", "/api/dpi",
+                           {"Origin": "http://evil.example",
+                            "Content-Type": "application/json"},
+                           body=b'{"stage":0,"dpi":400}')
+        check("server: a cross-origin write is refused", status, 403)
+
+        # a simple (preflight-free) cross-origin form post is refused too
+        status, _ = _probe(port, "POST", "/api/dpi",
+                           {"Content-Type": "text/plain"}, body=b"stage=0")
+        check("server: a form-encoded write is refused", status, 415)
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+
+
 def main() -> int:
-    for test in (test_frames, test_dpi, test_rate, test_guards, test_ui):
+    for test in (test_frames, test_dpi, test_rate, test_guards, test_ui,
+                 test_server_guards):
         test()
     if FAILURES:
         print(f"FAILED  {len(FAILURES)} of {CHECKS} checks\n")

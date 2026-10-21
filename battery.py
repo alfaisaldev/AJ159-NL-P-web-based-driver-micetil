@@ -102,6 +102,19 @@ LOG_FILE = os.path.join(
     "ajazz-panel", "battery.log")
 
 
+def _private_dir(path: str) -> None:
+    """Create the state directory, readable by its owner only.
+
+    The panel's state is small, but there is no reason for it to be
+    world-readable on a shared machine.
+    """
+    os.makedirs(path, exist_ok=True)
+    try:
+        os.chmod(path, 0o700)
+    except OSError:
+        pass
+
+
 def _ioc(direction: int, typ: int, nr: int, size: int) -> int:
     return (direction << 30) | ((size & 0xFFFF) << 16) | ((typ & 0xFF) << 8) | (nr & 0xFF)
 
@@ -464,7 +477,7 @@ class AjazzBattery:
             return
         self._logged = percent
         try:
-            os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+            _private_dir(os.path.dirname(LOG_FILE))
             with open(LOG_FILE, "a", encoding="utf-8") as fh:
                 fh.write("%s %3d %s\n" % (time.strftime("%Y-%m-%dT%H:%M:%S"),
                                           percent,
@@ -474,7 +487,7 @@ class AjazzBattery:
 
     def _save_state(self) -> None:
         try:
-            os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+            _private_dir(os.path.dirname(STATE_FILE))
             with open(STATE_FILE, "w", encoding="utf-8") as fh:
                 json.dump({"percent": self._reading.percent,
                            "since": self._reading.since,
