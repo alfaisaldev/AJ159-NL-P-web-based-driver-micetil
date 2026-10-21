@@ -1,5 +1,27 @@
 # Security policy
 
+## What the panel enforces
+
+The panel is a desktop tool with no authentication, so it defends itself
+with a few small rules. All of them are covered by `tools/selftest.py`:
+
+| rule | why |
+|---|---|
+| it binds `127.0.0.1` only | it is not reachable from the network |
+| a request whose `Host` is not the loopback is refused (403) | DNS rebinding: a page cannot point a name at 127.0.0.1 and then talk to the panel |
+| a write whose `Origin` is not the loopback is refused (403) | cross-site request forgery: another site cannot drive your mouse |
+| a write must be `Content-Type: application/json` (415 otherwise) | a browser can only send a preflight-free cross-origin POST as a form, and that is refused |
+| every served path is resolved and confined to `static/` and `assets/` (404 otherwise) | path traversal: no reading of `~/.ssh`, `~/.config` or anything else |
+| the request body is capped at 4 KB (413 otherwise) | no memory abuse |
+| the process runs as your user, never as root | a compromise of the panel is a compromise of your session, not of the machine |
+| its state directory is `0700` and its files `0600` | nothing readable by other users on a shared machine |
+| the only device it ever opens is a `0x7768` hidraw node | your other mice and keyboards are never touched |
+
+There is no `subprocess`, no `eval`, no shell-out and no network client in
+the panel. The only thing it writes to is the mouse, and only with the
+frames that were measured (see [[Protocol]] in the wiki, or
+`docs/CUSTOMIZATION.md`).
+
 ## What this tool is exposed to
 
 Micetil talks to one device: an AJAZZ mouse with USB vendor id `0x7768`,
