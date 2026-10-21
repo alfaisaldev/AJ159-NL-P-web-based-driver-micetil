@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  self-test:
+    name: self-test (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Byte-compile the panel and the tools
+        run: python3 -m compileall -q server.py battery.py ajazz_protocol.py tools
+
+      - name: Self-test (no hardware)
+        run: python3 tools/selftest.py
+
+      - name: The panel starts and answers
+        run: |
+          python3 server.py --port 8779 &
+          for i in $(seq 1 20); do
+            sleep 0.5
+            if curl -sf http://127.0.0.1:8779/api/health; then
+              echo
+              echo "health ok"
+              exit 0
+            fi
+          done
+          echo "the panel did not answer" >&2
+          exit 1
