@@ -305,6 +305,10 @@ micetil/
 │   └── quarantine/           the scripts that must never be run on a device
 │       ├── README.md         why they are quarantined — read this first
 │       └── …                 the enumeration and sweep scripts
+├── wiki/                     the pages of the GitHub wiki, kept here so they
+│                             are reviewable and versioned with the code
+│                             (Home, Installation, Protocol, Hardware notes,
+│                              Troubleshooting, Development)
 ├── README.md                 this guide
 ├── CONTRIBUTING.md           how to contribute
 ├── PRACTICE.md               how the work is done
@@ -317,6 +321,25 @@ micetil/
 device was not yet known to accept. They are kept for the record and
 **must not be run against a device** — read `tools/quarantine/README.md`
 first.
+
+---
+
+## Wiki
+
+The wiki lives in its own repository and is published at
+<https://github.com/alfaisaldev/AJ159-NL-P-web-based-driver-micetil/wiki>:
+
+* **Home** — what Micetil is
+* **Installation** — `install.sh`, the udev rule, the service, uninstall
+* **Protocol** — the wire format, the read block, the two write frames,
+  the active stage, the report rate — all of it measured
+* **Hardware notes** — the two USB ids, which node the panel picks, the
+  six stages
+* **Troubleshooting** — permissions, stale readings, rejected writes
+* **Development** — the self-test, the tools, how to add a protocol feature
+
+The page sources are kept in `wiki/` in this repository, so they can be
+reviewed and edited with the code.
 
 ---
 
