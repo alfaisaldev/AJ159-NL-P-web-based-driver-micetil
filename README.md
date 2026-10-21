@@ -310,7 +310,6 @@ micetil/
 ├── PRACTICE.md               how the work is done
 ├── CODE_OF_CONDUCT.md        Contributor Covenant 2.1
 ├── SECURITY.md               how to report a problem
-├── LICENSE                   MIT
 └── .github/                  CI, pull-request and issue templates
 ```
 
@@ -373,5 +372,6 @@ CI runs the self-test on Python 3.9, 3.11 and 3.12.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The brand assets in `assets/` are cropped
-from the project's own identity board.
+The license is the one this repository is published under — see the
+repository's license page. The brand assets in `assets/` are cropped from
+the project's own identity board.

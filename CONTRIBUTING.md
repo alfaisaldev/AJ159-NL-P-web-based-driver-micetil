@@ -144,5 +144,5 @@ that file.
 
 ## License
 
-Micetil is released under the MIT license — see `LICENSE`. Contributions
-are accepted under the same terms.
+Micetil is released under the license this repository is published under.
+Contributions are accepted under the same terms.
