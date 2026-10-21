@@ -372,6 +372,7 @@ CI runs the self-test on Python 3.9, 3.11 and 3.12.
 
 ## License
 
-The license is the one this repository is published under — see the
-repository's license page. The brand assets in `assets/` are cropped from
-the project's own identity board.
+**GNU Affero General Public License v3.0** — see `LICENSE`.
+
+The brand assets in `assets/` are cropped from the project's own identity
+board.
